@@ -1,64 +1,67 @@
 package andrea.sumador;
 
+class Acumulador{
+    long acumulador=0;
+    private final Object bloqueo= new Object();
+
+    synchronized void acumular (long l){
+        acumulador+=l;
+    }
+    public long getAcumulador() {
+        return acumulador;
+    }
+
+}
 class HiloSumador3 implements Runnable{
     int n1,n2;
+    Acumulador acu;
+    int numero;
 
-    public HiloSumador3(int n1, int n2) {
+    public HiloSumador3(int num,int n1, int n2, Acumulador_ a) {
         this.n1 = n1;
         this.n2 = n2;
+        this.acu = a;
+        this.numero=num;
+        System.out.println(n1+"-"+n2);
     }
 
     @Override
-    public synchronized void run () {
-        long suma=0;
+    public  void run () {
+        System.out.println("inicio hilo "+ numero);
+        int suma=0;
         for(int i=n1;i<=n2;i++ ){
-            suma +=i;
+            suma+=i;
         }
-        System.out.println(suma);
+        acu.acumular(suma);
     }
     
 }
 
 public class Eje2_HiloSumador {
+    
+    static Acumulador_ suma;
+    static final int NUM_HILOS=10;
     public static void main(String[] args) {
         
-        Thread t1=new Thread(new HiloSumador2(1, 33333));
-        Thread t2= new Thread(new HiloSumador2(33334, 66666));
-        Thread t3= new Thread(new HiloSumador2(66667, 1000000));
-        Thread t4=new Thread(new HiloSumador2(1000001,2000000 ));
-        Thread t5= new Thread(new HiloSumador2(2000001, 3000000));
-        Thread t6= new Thread(new HiloSumador2(3000001, 4000000));
-        Thread t7=new Thread(new HiloSumador2(4000001, 6666666));
-        Thread t8= new Thread(new HiloSumador2(600001, 888888));
-        Thread t9= new Thread(new HiloSumador2(10000000, 20000000));
-        Thread t10= new Thread(new HiloSumador2(500000000, 900000000));
-        
-        t1.start();
-        t2.start();
-        t3.start();
-        t4.start();
-        t5.start();
-        t6.start();
-        t7.start();
-        t8.start();
-        t9.start();
-        t10.start();
-
-        try {
-            t1.join();
-            t2.join();
-            t3.join();
-            t4.join();
-            t5.join();
-            t6.join();
-            t7.join();
-            t8.join();
-            t9.join();
-            t10.join();
-        } catch (InterruptedException e) {
-            System.out.println("Proseco interrumpido ");
+        suma =new Acumulador_();
+        Thread[] hilos= new Thread[NUM_HILOS];
+        int paso= 100000/NUM_HILOS-1;
+        System.out.println(paso);
+        int n1=l;
+        for(int i=0; i< NUM_HILOS; i++){
+            hilos[i]=new Thread(new HiloSumador3(i+1, n1, n1+paso, suma));
+            n1=n1+paso+1;
+            hilos[i].start();
         }
-
-        System.out.println("hilos terminados y Proceso padre terminado");
+        for(Thread t: hilos){
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+       
+        System.out.println(" suma "+ suma.getAcumulador());
+        
     }
 }
